@@ -1,0 +1,210 @@
+/* Estilos generales */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Header */
+header {
+    background-color: #4b0082; /* Violeta */
+    padding: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+header .logo {
+    height: 50px; /* Ajusta el tamaño del logo */
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2em;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+nav ul li {
+    margin-left: 20px;
+}
+
+nav ul li a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Hero Section */
+.hero {
+    background-color: #ff4500; /* Naranja */
+    padding: 100px 0;
+    text-align: center;
+}
+
+.hero h2 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+}
+
+.hero .btn {
+    background-color: #0000ff; /* Azul */
+    color: #ffffff;
+    padding: 10px 20px;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+/* Services Section */
+.services {
+    padding: 80px 0;
+    background-color: #1a1a1a;
+}
+
+.services h2 {
+    text-align: center;
+    margin-bottom: 50px;
+    font-size: 2em;
+}
+
+.service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.service-item {
+    background-color: #4b0082; /* Violeta */
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.service-item img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.service-item h3 {
+    font-size: 1.5em;
+    margin-bottom: 15px;
+}
+
+.service-item p {
+    font-size: 1em;
+}
+
+/* About Section */
+.about {
+    background-color: #0000ff; /* Azul */
+    padding: 80px 0;
+    text-align: center;
+}
+
+.about h2 {
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.about p {
+    font-size: 1.2em;
+}
+
+/* Contact Section */
+.contact {
+    padding: 80px 0;
+    background-color: #1a1a1a;
+}
+
+.contact h2 {
+    text-align: center;
+    margin-bottom: 50px;
+    font-size: 2em;
+}
+
+.contact form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.contact form input, .contact form textarea {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+.contact form button {
+    background-color: #ff4500; /* Naranja */
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+/* Footer */
+footer {
+    background-color: #4b0082; /* Violeta */
+    padding: 20px 0;
+    text-align: center;
+}
+
+footer p {
+    margin: 0;
+    font-size: 1em;
+}
+
+/* Estilos para la sección de contacto */
+.contact {
+    padding: 80px 0;
+    background-color: #1a1a1a;
+    text-align: center;
+}
+
+.contact h2 {
+    font-size: 2em;
+    margin-bottom: 50px;
+}
+
+.contact p {
+    font-size: 1.2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* Espacio entre el ícono y el texto */
+}
+
+.contact .fab.fa-whatsapp {
+    color: #25d366; /* Color verde de WhatsApp */
+    font-size: 1.5em;
+}
+
+.contact .fas.fa-envelope {
+    color: #ea4335; /* Color rojo de Gmail */
+    font-size: 1.5em;
+}
