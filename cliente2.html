@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Reparaciones 📱</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            text-align: left;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box; /* Asegura que el padding no afecte el ancho */
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .alert {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e7f3fe;
+            border-left: 5px solid #007bff;
+            text-align: left;
+        }
+
+        /* Media Queries para dispositivos móviles */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.3em; /* Tamaño de fuente más pequeño */
+            }
+            .container {
+                padding: 15px; /* Menos padding en pantallas pequeñas */
+            }
+            input, button {
+                font-size: 0.9em; /* Tamaño de fuente más pequeño para inputs y botones */
+            }
+            .alert {
+                font-size: 0.9em; /* Tamaño de fuente más pequeño para la alerta */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Seguimiento de Reparaciones 📲</h1>
+        <form id="buscarReparacionForm">
+            <label for="numero_seguimiento">Ingrese su Número de Orden de Trabajo:</label>
+            <input type="text" id="numero_seguimiento" name="numero_seguimiento" required>
+            <button type="submit">Buscar Reparación</button>
+        </form>
+        <div id="resultado" class="alert" style="display: none;">
+            <strong>Cliente:</strong> <span id="cliente"></span><br>
+            <strong>Teléfono:</strong> <span id="telefono"></span><br>
+            <strong>Modelo:</strong> <span id="modelo"></span><br>
+            <strong>IMEI:</strong> <span id="imei"></span><br>
+            <strong>Descripción:</strong> <span id="descripcion"></span><br>
+            <strong>Fecha Recepción:</strong> <span id="fechaRecepcion"></span><br>
+            <strong>Costo:</strong> <span id="costo"></span><br>
+            <strong>Estado:</strong> <span id="estado"></span><br>
+            <strong>Informe:</strong> <span id="informe"></span>
+        </div><br><br>
+        <div>
+            <footer align="center">Diseñado por: Sebastián Gómez  - Contacto: +543751316169</footer>
+        </div>
+    </div>
+    <script>
+        document.getElementById('buscarReparacionForm').addEventListener('submit', function (e) {
+            e.preventDefault(); // Evitar que el formulario se envíe
+
+            const numeroSeguimiento = document.getElementById('numero_seguimiento').value;
+
+            // Obtener las órdenes de trabajo desde localStorage
+            const ordenesGuardadas = localStorage.getItem('ordenesTrabajo');
+            const ordenesTrabajo = ordenesGuardadas ? JSON.parse(ordenesGuardadas) : [];
+
+            // Buscar la orden por número de seguimiento
+            const orden = ordenesTrabajo.find(ord => ord.numeroSeguimiento === numeroSeguimiento);
+
+            const resultadoDiv = document.getElementById('resultado');
+            if (orden) {
+                document.getElementById('cliente').textContent = orden.nombreCliente;
+                document.getElementById('telefono').textContent = orden.telefonoCliente;
+                document.getElementById('modelo').textContent = orden.modeloTelefono;
+                document.getElementById('imei').textContent = orden.imeiTelefono;
+                document.getElementById('descripcion').textContent = orden.descripcionProblema;
+                document.getElementById('fechaRecepcion').textContent = orden.fechaRecepcion;
+                document.getElementById('costo').textContent = orden.costoEstimado;
+                document.getElementById('estado').textContent = orden.estado;
+                document.getElementById('informe').textContent = orden.informe || "No hay informe disponible.";
+                resultadoDiv.style.display = 'block';
+            } else {
+                resultadoDiv.innerHTML = '<p>No se encontró ninguna reparación con ese número de seguimiento.</p>';
+                resultadoDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
