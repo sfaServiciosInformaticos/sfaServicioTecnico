@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar mi Orden - Servicio Técnico</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #007BFF;
+            text-align: center;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .resultado {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Buscar mi Orden</h1>
+        <p>Ingresa tu número de seguimiento para ver el estado de tu reparación:</p>
+        
+        <input type="text" id="numeroSeguimientoBuscar" placeholder="Ej: ORD1234">
+        <button onclick="buscarOrdenCliente()">Buscar Orden</button>
+        
+        <div id="resultadoBusqueda" class="resultado hidden">
+            <h2>Información de tu Orden</h2>
+            <div id="infoOrden"></div>
+            <button onclick="generarPDFCliente()" id="btnPDF" class="hidden">Descargar Comprobante</button>
+        </div>
+        
+        <div id="noEncontrado" class="resultado hidden">
+            <p>No se encontró ninguna orden con ese número. Por favor verifica e intenta nuevamente.</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Variable para almacenar la orden encontrada
+        let ordenEncontrada = null;
+        
+        // Función para buscar la orden
+        function buscarOrdenCliente() {
+            const numeroSeguimiento = document.getElementById('numeroSeguimientoBuscar').value.trim();
+            const ordenesGuardadas = localStorage.getItem('ordenesTrabajo');
+            
+            document.getElementById('resultadoBusqueda').classList.add('hidden');
+            document.getElementById('noEncontrado').classList.add('hidden');
+            
+            if (ordenesGuardadas) {
+                const ordenes = JSON.parse(ordenesGuardadas);
+                ordenEncontrada = ordenes.find(ord => ord.numeroSeguimiento === numeroSeguimiento);
+                
+                if (ordenEncontrada) {
+                    document.getElementById('infoOrden').innerHTML = `
+                        <p><strong>Número de Orden:</strong> ${ordenEncontrada.numeroSeguimiento}</p>
+                        <p><strong>Cliente:</strong> ${ordenEncontrada.nombreCliente}</p>
+                        <p><strong>Dispositivo:</strong> ${ordenEncontrada.modeloTelefono}</p>
+                        <p><strong>Problema:</strong> ${ordenEncontrada.descripcionProblema}</p>
+                        <p><strong>Estado:</strong> ${ordenEncontrada.estado}</p>
+                        <p><strong>Fecha de Recepción:</strong> ${ordenEncontrada.fechaRecepcion}</p>
+                        <p><strong>Costo Estimado:</strong> $${ordenEncontrada.costoEstimado}</p>
+                    `;
+                    document.getElementById('resultadoBusqueda').classList.remove('hidden');
+                    document.getElementById('btnPDF').classList.remove('hidden');
+                } else {
+                    document.getElementById('noEncontrado').classList.remove('hidden');
+                }
+            } else {
+                document.getElementById('noEncontrado').classList.remove('hidden');
+            }
+        }
+        
+        // Función para generar PDF
+        function generarPDFCliente() {
+            if (!ordenEncontrada) return;
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(18);
+            doc.text("Comprobante de Orden", 60, 15);
+            doc.setFontSize(12);
+            
+            let y = 30;
+            const addField = (label, value) => {
+                doc.text(`${label}: ${value}`, 15, y);
+                y += 10;
+            };
+            
+            addField("Número de Orden", ordenEncontrada.numeroSeguimiento);
+            addField("Cliente", ordenEncontrada.nombreCliente);
+            addField("Teléfono", ordenEncontrada.telefonoCliente);
+            addField("Dispositivo", ordenEncontrada.modeloTelefono);
+            addField("IMEI", ordenEncontrada.imeiTelefono);
+            addField("Problema", ordenEncontrada.descripcionProblema);
+            addField("Fecha Recepción", ordenEncontrada.fechaRecepcion);
+            addField("Estado", ordenEncontrada.estado);
+            addField("Costo Estimado", `$${ordenEncontrada.costoEstimado}`);
+            
+            doc.text("Gracias por confiar en nuestro servicio!", 50, y + 20);
+            doc.save(`orden_${ordenEncontrada.numeroSeguimiento}.pdf`);
+        }
+    </script>
+</body>
+</html>
