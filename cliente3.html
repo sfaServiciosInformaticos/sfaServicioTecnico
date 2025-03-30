@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Reparaciones - Cliente</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #007BFF;
+            --secondary-color: #6c757d;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .main-container {
+            max-width: 500px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 0.35rem 0.65rem;
+        }
+        .whatsapp-btn {
+            background-color: #25D366;
+            color: white;
+        }
+        .whatsapp-btn:hover {
+            background-color: #128C7E;
+            color: white;
+        }
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+        @media (max-width: 576px) {
+            .main-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <div class="text-center mb-4">
+                <h2 class="mb-1">Seguimiento de Reparación</h2>
+                <p class="text-muted">Ingresa tu número de orden para consultar el estado</p>
+            </div>
+            
+            <form id="trackingForm">
+                <div class="mb-3">
+                    <label for="orderNumber" class="form-label">Número de Orden</label>
+                    <input type="text" class="form-control" id="orderNumber" required 
+                           placeholder="Ej: ORD1234">
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 mb-3" id="searchBtn">
+                    <span id="searchText">Buscar Reparación</span>
+                    <span id="searchSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                </button>
+            </form>
+            
+            <div id="resultContainer" class="d-none mt-4">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="card-title mb-0">Detalles de la Reparación</h5>
+                            <span id="statusBadge" class="badge status-badge bg-primary">En Proceso</span>
+                        </div>
+                        
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Cliente:</strong> <span id="clientName">-</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Teléfono:</strong> <span id="clientPhone">-</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Modelo:</strong> <span id="deviceModel">-</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>IMEI:</strong> <span id="deviceImei">-</span></p>
+                            </div>
+                            <div class="col-12">
+                                <p class="mb-1"><strong>Problema:</strong> <span id="issueDescription">-</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Fecha Ingreso:</strong> <span id="receiptDate">-</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Costo Estimado:</strong> <span id="estimatedCost">-</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <a id="whatsappBtn" href="#" class="btn whatsapp-btn">
+                        <i class="bi bi-whatsapp"></i> Contactar por WhatsApp
+                    </a>
+                </div>
+            </div>
+            
+            <div id="errorContainer" class="alert alert-danger d-none mt-3"></div>
+        </div>
+        
+        <footer>
+            <p class="mb-1">Servicio Técnico Especializado</p>
+            <p class="mb-0">© <span id="currentYear"></span> - Todos los derechos reservados</p>
+        </footer>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Configuración para conectarse con GitHub Pages
+        const REPO_URL = 'https://TU_USUARIO.github.io/TU_REPOSITORIO'; // Reemplaza con tu URL de GitHub Pages
+        const ORDERS_FILE = 'ordenes.json'; // Archivo donde se guardarán las órdenes
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            
+            // Cargar orden desde parámetro URL si existe
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderParam = urlParams.get('orden');
+            if (orderParam) {
+                document.getElementById('orderNumber').value = orderParam;
+                document.getElementById('trackingForm').dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        document.getElementById('trackingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const orderNumber = document.getElementById('orderNumber').value.trim().toUpperCase();
+            const searchBtn = document.getElementById('searchBtn');
+            const searchText = document.getElementById('searchText');
+            const searchSpinner = document.getElementById('searchSpinner');
+            
+            // Mostrar spinner de carga
+            searchText.textContent = "Buscando...";
+            searchSpinner.classList.remove('d-none');
+            searchBtn.disabled = true;
+            
+            // Ocultar resultados anteriores
+            document.getElementById('resultContainer').classList.add('d-none');
+            document.getElementById('errorContainer').classList.add('d-none');
+            
+            try {
+                // Obtener las órdenes desde GitHub
+                const response = await fetch(`${REPO_URL}/${ORDERS_FILE}?t=${new Date().getTime()}`);
+                
+                if (!response.ok) {
+                    throw new Error('No se pudo cargar la información de reparaciones');
+                }
+                
+                const orders = await response.json();
+                const order = orders.find(o => o.numeroSeguimiento === orderNumber);
+                
+                if (order) {
+                    // Mostrar los datos
+                    document.getElementById('clientName').textContent = order.nombreCliente || '-';
+                    document.getElementById('clientPhone').textContent = order.telefonoCliente || '-';
+                    document.getElementById('deviceModel').textContent = order.modeloTelefono || '-';
+                    document.getElementById('deviceImei').textContent = order.imeiTelefono || '-';
+                    document.getElementById('issueDescription').textContent = order.descripcionProblema || '-';
+                    document.getElementById('receiptDate').textContent = order.fechaRecepcion || '-';
+                    document.getElementById('estimatedCost').textContent = order.costoEstimado ? `$${order.costoEstimado}` : '-';
+                    
+                    // Actualizar estado
+                    const statusBadge = document.getElementById('statusBadge');
+                    statusBadge.textContent = order.estado || 'En Proceso';
+                    
+                    // Cambiar color según estado
+                    if (order.estado === 'Reparado') {
+                        statusBadge.className = 'badge status-badge bg-success';
+                    } else if (order.estado === 'Cancelado') {
+                        statusBadge.className = 'badge status-badge bg-danger';
+                    } else if (order.estado === 'Para Retirar') {
+                        statusBadge.className = 'badge status-badge bg-warning text-dark';
+                    } else {
+                        statusBadge.className = 'badge status-badge bg-primary';
+                    }
+                    
+                    // Configurar botón de WhatsApp
+                    const whatsappBtn = document.getElementById('whatsappBtn');
+                    whatsappBtn.href = `https://wa.me/543751316169?text=Consulta%20sobre%20mi%20reparación%20(Orden%20${orderNumber})`;
+                    
+                    // Mostrar resultados
+                    document.getElementById('resultContainer').classList.remove('d-none');
+                } else {
+                    showError('No se encontró ninguna reparación con ese número de orden.');
+                }
+            } catch (error) {
+                console.error("Error al buscar la orden:", error);
+                showError('Ocurrió un error al buscar tu reparación. Por favor intenta nuevamente más tarde.');
+            } finally {
+                // Restaurar botón
+                searchText.textContent = "Buscar Reparación";
+                searchSpinner.classList.add('d-none');
+                searchBtn.disabled = false;
+            }
+        });
+        
+        function showError(message) {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.textContent = message;
+            errorContainer.classList.remove('d-none');
+        }
+    </script>
+</body>
+</html>
