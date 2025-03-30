@@ -3,174 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Reparación</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Servicio Técnico</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        .status-badge {
-            font-size: 0.9rem;
-            padding: 0.4rem 0.75rem;
-        }
-        .whatsapp-btn {
-            background-color: #25D366;
-            color: white;
-        }
-        .whatsapp-btn:hover {
-            background-color: #128C7E;
-            color: white;
-        }
-        footer {
-            margin-top: 2rem;
-            text-align: center;
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
+        /* [Mantén todos tus estilos CSS actuales] */
     </style>
+    <!-- Incluir la librería jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Incluir GitHub API -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h2 class="mb-3">Consulta de Reparación</h2>
-        <form id="trackingForm">
-            <div class="mb-3">
-                <label for="orderNumber" class="form-label">Número de Orden</label>
-                <input type="text" class="form-control" id="orderNumber" required 
-                       placeholder="Ej: ORD1234">
-            </div>
-            <button type="submit" class="btn btn-primary w-100 mb-3">Buscar Reparación</button>
-        </form>
-        
-        <div id="resultContainer" class="d-none">
-            <div class="card mb-3">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="card-title mb-0">Detalles de la Reparación</h5>
-                        <span id="statusBadge" class="badge status-badge bg-primary">En Proceso</span>
-                    </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <p class="mb-1"><strong>Cliente:</strong> <span id="clientName">-</span></p>
-                        </div>
-                        <div class="col-md-6">
-                            <p class="mb-1"><strong>Teléfono:</strong> <span id="clientPhone">-</span></p>
-                        </div>
-                        <div class="col-md-6">
-                            <p class="mb-1"><strong>Modelo:</strong> <span id="deviceModel">-</span></p>
-                        </div>
-                        <div class="col-md-6">
-                            <p class="mb-1"><strong>IMEI:</strong> <span id="deviceImei">-</span></p>
-                        </div>
-                        <div class="col-12">
-                            <p class="mb-1"><strong>Problema:</strong> <span id="issueDescription">-</span></p>
-                        </div>
-                        <div class="col-md-6">
-                            <p class="mb-1"><strong>Fecha Ingreso:</strong> <span id="receiptDate">-</span></p>
-                        </div>
-                        <div class="col-md-6">
-                            <p class="mb-1"><strong>Costo Estimado:</strong> <span id="estimatedCost">-</span></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <a id="whatsappBtn" href="#" class="btn whatsapp-btn w-100">
-                Contactar por WhatsApp
-            </a>
-        </div>
-        
-        <div id="errorContainer" class="alert alert-danger d-none mt-3"></div>
-        
-        <footer>
-            <p class="mb-1">Servicio Técnico Especializado</p>
-            <p class="mb-0">© <span id="currentYear"></span> - Todos los derechos reservados</p>
-        </footer>
-    </div>
+    <!-- [Mantén todo tu HTML actual] -->
 
     <script>
-        const GITHUB_USER = 'TU_USUARIO_GITHUB'; // Mismo que en el otro archivo
+        // Configuración de GitHub
+        const GITHUB_USER = 'TU_USUARIO_GITHUB'; // Reemplaza con tu usuario
+        const REPO_NAME = 'TU_USUARIO_GITHUB.github.io'; // Para GitHub Pages
+        const TOKEN = 'TU_TOKEN_GITHUB'; // Necesitas crear un token personal en GitHub
         const ORDERS_FILE = 'ordenes.json';
         
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('currentYear').textContent = new Date().getFullYear();
-            
-            // Cargar orden desde URL si existe
-            const urlParams = new URLSearchParams(window.location.search);
-            const orderParam = urlParams.get('orden');
-            if (orderParam) {
-                document.getElementById('orderNumber').value = orderParam;
-                buscarOrden();
-            }
-        });
+        // Array para almacenar las órdenes de trabajo
+        let ordenesTrabajo = [];
 
-        document.getElementById('trackingForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            buscarOrden();
-        });
-
-        async function buscarOrden() {
-            const orderNumber = document.getElementById('orderNumber').value.trim().toUpperCase();
-            const resultContainer = document.getElementById('resultContainer');
-            const errorContainer = document.getElementById('errorContainer');
-            
-            resultContainer.classList.add('d-none');
-            errorContainer.classList.add('d-none');
-            
+        // Cargar órdenes guardadas al iniciar la página
+        async function cargarOrdenesGuardadas() {
             try {
-                const response = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_USER}.github.io/main/${ORDERS_FILE}?t=${new Date().getTime()}`);
-                const orders = await response.json();
-                const order = orders.find(o => o.numeroSeguimiento === orderNumber);
-                
-                if (order) {
-                    // Mostrar información
-                    document.getElementById('clientName').textContent = order.nombreCliente || '-';
-                    document.getElementById('clientPhone').textContent = order.telefonoCliente || '-';
-                    document.getElementById('deviceModel').textContent = order.modeloTelefono || '-';
-                    document.getElementById('deviceImei').textContent = order.imeiTelefono || '-';
-                    document.getElementById('issueDescription').textContent = order.descripcionProblema || '-';
-                    document.getElementById('receiptDate').textContent = order.fechaRecepcion || '-';
-                    document.getElementById('estimatedCost').textContent = order.costoEstimado ? `$${order.costoEstimado}` : '-';
-                    
-                    // Actualizar estado
-                    const statusBadge = document.getElementById('statusBadge');
-                    statusBadge.textContent = order.estado || 'En Proceso';
-                    
-                    // Cambiar color según estado
-                    if (order.estado === 'Reparado') {
-                        statusBadge.className = 'badge status-badge bg-success';
-                    } else if (order.estado === 'Cancelado') {
-                        statusBadge.className = 'badge status-badge bg-danger';
-                    } else if (order.estado === 'Para Retirar') {
-                        statusBadge.className = 'badge status-badge bg-warning text-dark';
-                    }
-                    
-                    // Configurar WhatsApp
-                    document.getElementById('whatsappBtn').href = `https://wa.me/543751316169?text=Consulta%20sobre%20mi%20reparación%20(Orden%20${orderNumber})`;
-                    
-                    resultContainer.classList.remove('d-none');
-                } else {
-                    throw new Error('No se encontró ninguna reparación con ese número de orden');
+                const response = await axios.get(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/main/${ORDERS_FILE}?t=${new Date().getTime()}`);
+                if (response.data) {
+                    ordenesTrabajo = response.data;
+                    console.log("Órdenes cargadas desde GitHub");
                 }
             } catch (error) {
-                errorContainer.textContent = error.message;
-                errorContainer.classList.remove('d-none');
+                console.log("No se encontró archivo de órdenes, iniciando con array vacío");
+                // Cargar desde localStorage como respaldo
+                const ordenesGuardadas = localStorage.getItem('ordenesTrabajo');
+                if (ordenesGuardadas) {
+                    ordenesTrabajo = JSON.parse(ordenesGuardadas);
+                }
             }
         }
+
+        // Guardar órdenes en GitHub y localStorage
+        async function guardarOrdenes() {
+            // Guardar en localStorage como respaldo
+            localStorage.setItem('ordenesTrabajo', JSON.stringify(ordenesTrabajo));
+            
+            // Guardar en GitHub
+            try {
+                const content = JSON.stringify(ordenesTrabajo);
+                const response = await axios.put(
+                    `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${ORDERS_FILE}`,
+                    {
+                        message: "Actualización de órdenes de trabajo",
+                        content: btoa(unescape(encodeURIComponent(content))),
+                        sha: await getFileSha()
+                    },
+                    {
+                        headers: {
+                            'Authorization': `token ${TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+                console.log("Órdenes guardadas en GitHub", response);
+            } catch (error) {
+                console.error("Error al guardar en GitHub:", error);
+                alert("Las órdenes se guardaron localmente pero no en GitHub. Revisa la consola para más detalles.");
+            }
+        }
+
+        // Obtener SHA del archivo existente para actualizarlo
+        async function getFileSha() {
+            try {
+                const response = await axios.get(
+                    `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${ORDERS_FILE}`,
+                    {
+                        headers: {
+                            'Authorization': `token ${TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+                return response.data.sha;
+            } catch (error) {
+                return null; // El archivo no existe aún
+            }
+        }
+
+        // [Mantén todas tus otras funciones iguales: mostrarFormulario, agregarOrdenTrabajo, etc.]
+
+        // Modifica la función de búsqueda para que genere un enlace para el cliente
+        function buscarOrden() {
+            const numeroSeguimiento = document.getElementById('numeroSeguimientoBuscar').value;
+            const resultadoBusqueda = document.getElementById('resultadoBusqueda');
+            resultadoBusqueda.innerHTML = ''; // Limpiar resultados anteriores
+
+            const orden = ordenesTrabajo.find(ord => ord.numeroSeguimiento === numeroSeguimiento);
+            if (orden) {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <strong>Número de Seguimiento:</strong> ${orden.numeroSeguimiento}<br>
+                    <strong>Cliente:</strong> ${orden.nombreCliente}<br>
+                    <strong>Estado:</strong> ${orden.estado}<br>
+                    <strong>Fecha:</strong> ${orden.fechaRecepcion}<br>
+                    <strong>Costo:</strong> $${orden.costoEstimado}<br>
+                    <strong>Enlace para el cliente:</strong> 
+                    <input type="text" value="https://${GITHUB_USER}.github.io/consulta.html?orden=${orden.numeroSeguimiento}" readonly>
+                    <button onclick="copiarEnlace('https://${GITHUB_USER}.github.io/consulta.html?orden=${orden.numeroSeguimiento}')">Copiar</button>
+                `;
+                resultadoBusqueda.appendChild(li);
+            } else {
+                resultadoBusqueda.innerHTML = "<p>No se encontró ninguna orden con ese número de seguimiento.</p>";
+            }
+        }
+
+        function copiarEnlace(enlace) {
+            navigator.clipboard.writeText(enlace);
+            alert("Enlace copiado al portapapeles");
+        }
+
+        // Cargar órdenes al iniciar
+        document.addEventListener('DOMContentLoaded', cargarOrdenesGuardadas);
     </script>
+    <footer align="center">Diseñado por: Sebastián Gómez - Contacto: +543751316169</footer>
 </body>
 </html>
